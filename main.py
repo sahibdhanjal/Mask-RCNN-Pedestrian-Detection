@@ -79,6 +79,8 @@ if __name__ == '__main__':
     link = 'http://' + url + '/video'
     print('Streaming from: ' + link)
 
+    ctr = 0
+
     stream = urllib2.urlopen(link)
     bytes = bytes()
 
@@ -88,21 +90,24 @@ if __name__ == '__main__':
         a = bytes.find(b'\xff\xd8')
         b = bytes.find(b'\xff\xd9')
         if a != -1 and b != -1:
-            jpg = bytes[a:b+2]
-            bytes = bytes[b+2:]
-            frame = cv2.imdecode(np.fromstring(jpg, dtype=np.uint8), cv2.IMREAD_COLOR)
+            ctr += 1
 
-            start = time.time()
-            results = model.detect([frame], verbose=1)
-            r = results[0]
-            print(time.time() - start)
+            if ctr%10==0:
+                jpg = bytes[a:b+2]
+                bytes = bytes[b+2:]
+                frame = cv2.imdecode(np.fromstring(jpg, dtype=np.uint8), cv2.IMREAD_COLOR)
+
+                start = time.time()
+                results = model.detect([frame], verbose=1)
+                r = results[0]
+                print(time.time() - start)
 
 
-            ##################################################
-            # Image Plotting
-            ##################################################
-            visualize.display_instances(frame, r['rois'], r['masks'], r['class_ids'], class_names, r['scores'], "Real Time Detection", size, ax, fig)
+                ##################################################
+                # Image Plotting
+                ##################################################
+                visualize.display_instances(frame, r['rois'], r['masks'], r['class_ids'], class_names, r['scores'], "Real Time Detection", size, ax, fig)
 
-            # Press esc on keyboard to  exit
-            if cv2.waitKey(25) & 0xFF == 27:
-                exit(0)
+                # Press esc on keyboard to  exit
+                if cv2.waitKey(25) & 0xFF == 27:
+                    exit(0)
