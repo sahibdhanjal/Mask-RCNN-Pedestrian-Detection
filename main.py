@@ -7,16 +7,20 @@ import skimage.io
 import matplotlib
 import matplotlib.pyplot as plt
 
+# RCNN Dependencies
 import utils
 import coco
 import utils
 import model as modellib
 import visualize
 
+# Video Detection Dependenices
 import cv2
 import time
 import urllib.request as urllib2
 
+# particle filter dependencies
+import particle
 
 if __name__ == '__main__':
     # Root directory of the project
@@ -70,10 +74,83 @@ if __name__ == '__main__':
                    'sink', 'refrigerator', 'book', 'clock', 'vase', 'scissors',
                    'teddy bear', 'hair drier', 'toothbrush']
 
-
+    ##################################################
+    # Real Time Detection
+    ##################################################
     plt.ion()
-    size = (16, 16)
+    size = (8, 8)
     fig, ax = plt.subplots(1, figsize = size)
+
+    cap = cv2.VideoCapture(0)
+
+    if (cap.isOpened() == False):
+        print("Error opening video stream / file")
+        exit(0)
+
+    _ , frame0 = cap.read()
+    prevFrame = cv2.cvtColor(frame0, cv2.COLOR_BGR2GRAY)
+
+    ##################################################
+    # Particle Filter Initialization
+    ##################################################
+    numParticles = 1000
+    particles = [particle.Particle(0,0,0)]*numParticles
+    for i in range(numParticles):
+        particles[i] = particle.Particle(random.randint(0,frame0.shape[0]-1), random.randint(0,frame0.shape[1]-1), 1/numParticles)
+
+
+    while(cap.isOpened()):
+        ret, frame = cap.read()
+
+        start = time.time()
+
+        ##################################################
+        # Calculate Optical Flow
+        ##################################################
+        nextFrame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        flow = cv2.calcOpticalFlowFarneback(prevFrame, nextFrame, None, 0.5, 3, 15, 3, 5, 1.2, 0)
+        dx , dy = flow[...,0], flow[...,1]
+
+
+        ##################################################
+        # Mask R-CNN Detection
+        ##################################################
+        results = model.detect([frame], verbose=1)
+
+        r = results[0]
+        boxes = r['rois']
+        N = boxes.shape[0]
+
+        for i in range(N):
+            # mean and covariance in the particle filter
+            y1, x1, y2, x2 = boxes[i]
+
+            # optical flow center and covariance
+            meanX = dx[x1:x2, y1:y2].mean()
+            meanY = dy[x1:x2, y1:y2].mean()
+            covX = (np.cov(dx[x1:x2, y1:y2])).mean()
+            covY = (np.cov(dy[x1:x2, y1:y2])).mean()
+
+            # bounding box center
+            boxX = (x1+x2)/2
+            boxY = (y1+y2)/2
+            print(meanX, meanY, boxX, boxY)
+
+        ##################################################
+        # Image Plotting
+        ##################################################
+        visualize.display_instances(frame, r['rois'], r['masks'], r['class_ids'], class_names, r['scores'], "Real Time Detection", size, ax, fig)
+
+        print(time.time() - start)
+
+        if cv2.waitKey(25) & 0xFF == 27:
+            break
+
+    cap.release()
+    cv2.destroyAllWindows()
+
+    '''
+    Block for IP Streaming
 
     url = "35.3.71.126:8080"
     link = 'http://' + url + '/video'
@@ -111,3 +188,5 @@ if __name__ == '__main__':
                 # Press esc on keyboard to  exit
                 if cv2.waitKey(25) & 0xFF == 27:
                     exit(0)
+    '''
+

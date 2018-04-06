@@ -86,7 +86,7 @@ def display_instances(image, boxes, masks, class_ids, class_names,
     """
     # Number of instances
     N = boxes.shape[0]
-    print(N)
+
     if not N:
         print("\n*** No instances to display *** \n")
     else:
