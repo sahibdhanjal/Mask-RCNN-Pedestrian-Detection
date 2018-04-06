@@ -29,4 +29,37 @@ def sensorModel(particles, numParticles, boxX, boxY):
     return particles
 
 def resample(particles, numParticles):
-    pass
+    Q = [0.0]*numParticles
+
+    idxArr = np.zeros((numParticles, 1), dtype = int)
+
+    newParticles = [particle.Particle(0,0,0)]*numParticles
+
+    # calculate CDF
+    Q[0] = particles[0].weight
+    for i in range(1,numParticles):
+        Q[i] = particles[i].weight + Q[i-1]
+
+    t = np.random.rand(numParticles + 1, 1)
+    T = np.sort(t, axis=0)
+    T[numParticles] = 1
+
+    i, j = 0, 0
+    while i<numParticles:
+        print(i,j, len(T), len(Q))
+        if T[i] < Q[j]:
+            idxArr[i] = j
+            i += 1
+        else:
+            j += 1
+
+    for i in range(numParticles):
+        newParticles[i].x = particles[idxArr[i][0]].x
+        newParticles[i].y = particles[idxArr[i][0]].y
+        newParticles[i].weight = 1/numParticles
+
+    return newParticles
+
+
+
+

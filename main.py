@@ -122,8 +122,19 @@ if __name__ == '__main__':
         boxes = r['rois']
         N = boxes.shape[0]
 
+        idx = []
+        for k in range(N):
+            if r['class_ids'][k] == 1:
+                idx.append(k)
+
+        idS = 0; maxE = 0
+        for k in idx:
+            if r['scores'][k] > maxE:
+                maxE = r['scores'][k]
+                idS = k
+
         for i in range(N):
-            if r['class_ids'][i] == 1:
+            if r['class_ids'][i] == 1 and i==idS:
                 # mean and covariance in the particle filter
                 y1, x1, y2, x2 = boxes[i]
 
@@ -155,6 +166,7 @@ if __name__ == '__main__':
 
                 for j in range(numParticles):
                     ax.scatter([particles[j].x], [particles[j].y])
+
                 break
 
         ##################################################
