@@ -78,7 +78,7 @@ if __name__ == '__main__':
     # Real Time Detection
     ##################################################
     plt.ion()
-    size = (8, 8)
+    size = (16, 16)
     fig, ax = plt.subplots(1, figsize = size)
 
     cap = cv2.VideoCapture(0)
@@ -134,6 +134,7 @@ if __name__ == '__main__':
             # bounding box center
             boxX = (x1+x2)/2
             boxY = (y1+y2)/2
+
             print(meanX, meanY, boxX, boxY)
 
         ##################################################

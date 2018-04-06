@@ -7,7 +7,7 @@ bin-release/
 
 # Other files and folders
 .settings/
-.__pycache__/
+./__pycache__/
 *.h5
 
 # Executables
