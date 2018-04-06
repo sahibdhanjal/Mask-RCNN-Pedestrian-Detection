@@ -86,9 +86,9 @@ if __name__ == '__main__':
     if (cap.isOpened() == False):
         print("Error opening video stream / file")
         exit(0)
-
-    _ , frame0 = cap.read()
-    prevFrame = cv2.cvtColor(frame0, cv2.COLOR_BGR2GRAY)
+    else:
+        ret , frame0 = cap.read()
+        prevFrame = cv2.cvtColor(frame0, cv2.COLOR_BGR2GRAY)
 
     ##################################################
     # Particle Filter Initialization
