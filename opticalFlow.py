@@ -18,7 +18,7 @@ while(1):
     hsv[...,0] = ang*180/np.pi/2
     hsv[...,2] = cv2.normalize(mag,None,0,255,cv2.NORM_MINMAX)
 
-    print(np.sum(mag[100:300, 100:300]))
+    # print(np.sum(mag[100:300, 100:300]))
     if (np.sum(mag)> 100000):
         print('motion detected')
 

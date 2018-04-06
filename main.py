@@ -21,6 +21,7 @@ import urllib.request as urllib2
 
 # particle filter dependencies
 import particle
+import particleFilter as pf
 
 if __name__ == '__main__':
     # Root directory of the project
@@ -93,7 +94,7 @@ if __name__ == '__main__':
     ##################################################
     # Particle Filter Initialization
     ##################################################
-    numParticles = 1000
+    numParticles = 100
     particles = [particle.Particle(0,0,0)]*numParticles
     for i in range(numParticles):
         particles[i] = particle.Particle(random.randint(0,frame0.shape[0]-1), random.randint(0,frame0.shape[1]-1), 1/numParticles)
@@ -110,7 +111,7 @@ if __name__ == '__main__':
         nextFrame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         flow = cv2.calcOpticalFlowFarneback(prevFrame, nextFrame, None, 0.5, 3, 15, 3, 5, 1.2, 0)
         dx , dy = flow[...,0], flow[...,1]
-
+        prevFrame = nextFrame
 
         ##################################################
         # Mask R-CNN Detection
@@ -122,26 +123,39 @@ if __name__ == '__main__':
         N = boxes.shape[0]
 
         for i in range(N):
-            # mean and covariance in the particle filter
-            y1, x1, y2, x2 = boxes[i]
+            if r['class_ids'][i] == 1:
+                # mean and covariance in the particle filter
+                y1, x1, y2, x2 = boxes[i]
 
-            # optical flow center and covariance
-            meanX = dx[x1:x2, y1:y2].mean()
-            meanY = dy[x1:x2, y1:y2].mean()
-            covX = (np.cov(dx[x1:x2, y1:y2])).mean()
-            covY = (np.cov(dy[x1:x2, y1:y2])).mean()
+                # optical flow center and covariance
+                meanX = dx[x1:x2, y1:y2].mean()
+                meanY = dy[x1:x2, y1:y2].mean()
+                covX = (np.cov(dx[x1:x2, y1:y2])).mean()
+                covY = (np.cov(dy[x1:x2, y1:y2])).mean()
 
-            # bounding box center
-            boxX = (x1+x2)/2
-            boxY = (y1+y2)/2
-            covBox = 1 - r['scores'][i]
+                # bounding box center
+                boxX = (x1+x2)/2
+                boxY = (y1+y2)/2
+                covBox = 1 - r['scores'][i]
 
-            '''
-            print('Mean Positions: ')
-            print(meanX, meanY, boxX, boxY)
-            print('Covariances: ')
-            print(covX, covY, covBox)
-            '''
+                if math.isnan(meanX) :
+                    meanX = 0
+                    covX = 0
+                if math.isnan(meanY) :
+                    meanY = 0
+                    covY = 0
+
+                sumX = np.sum(dx[x1:x2, y1:y2])
+                sumY = np.sum(dy[x1:x2, y1:y2])
+
+                particles = pf.actionModel(particles, numParticles, boxX, boxY, meanX, meanY, covX, covY)
+
+                # print('Mean Positions: ')
+                # print(meanX, meanY, sumX, sumY, boxX, boxY)
+                # print('Covariances: ')
+                # print(covX, covY, covBox)
+                for j in range(numParticles):
+                    ax.scatter([particles[j].x], [particles[j].y])
 
         ##################################################
         # Image Plotting
