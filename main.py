@@ -134,15 +134,21 @@ if __name__ == '__main__':
             # bounding box center
             boxX = (x1+x2)/2
             boxY = (y1+y2)/2
+            covBox = 1 - r['scores'][i]
 
+            '''
+            print('Mean Positions: ')
             print(meanX, meanY, boxX, boxY)
+            print('Covariances: ')
+            print(covX, covY, covBox)
+            '''
 
         ##################################################
         # Image Plotting
         ##################################################
         visualize.display_instances(frame, r['rois'], r['masks'], r['class_ids'], class_names, r['scores'], "Real Time Detection", size, ax, fig)
 
-        print(time.time() - start)
+        print('Time elapsed: ',time.time() - start)
 
         if cv2.waitKey(25) & 0xFF == 27:
             break
