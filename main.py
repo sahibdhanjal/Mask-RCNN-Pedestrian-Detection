@@ -138,24 +138,24 @@ if __name__ == '__main__':
                 boxY = (y1+y2)/2
                 covBox = 1 - r['scores'][i]
 
+                # Assign random mean / covariance which needs to be tuned
+                # currently using 0.3, 5
                 if math.isnan(meanX) :
-                    meanX = 0
-                    covX = 0
+                    meanX = 0.3
+                    covX = 5
                 if math.isnan(meanY) :
-                    meanY = 0
-                    covY = 0
+                    meanY = 0.3
+                    covY = 5
 
                 sumX = np.sum(dx[x1:x2, y1:y2])
                 sumY = np.sum(dy[x1:x2, y1:y2])
 
                 particles = pf.actionModel(particles, numParticles, boxX, boxY, meanX, meanY, covX, covY)
+                particles = pf.sensorModel(particles, numParticles, boxX, boxY)
 
-                # print('Mean Positions: ')
-                # print(meanX, meanY, sumX, sumY, boxX, boxY)
-                # print('Covariances: ')
-                # print(covX, covY, covBox)
                 for j in range(numParticles):
                     ax.scatter([particles[j].x], [particles[j].y])
+                break
 
         ##################################################
         # Image Plotting
