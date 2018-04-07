@@ -82,111 +82,9 @@ if __name__ == '__main__':
     size = (16, 16)
     fig, ax = plt.subplots(1, figsize = size)
 
-    cap = cv2.VideoCapture(0)
-
-    if (cap.isOpened() == False):
-        print("Error opening video stream / file")
-        exit(0)
-    else:
-        ret , frame0 = cap.read()
-        prevFrame = cv2.cvtColor(frame0, cv2.COLOR_BGR2GRAY)
-
-    ##################################################
-    # Particle Filter Initialization
-    ##################################################
-    numParticles = 100
-    particles = [particle.Particle(0,0,0)]*numParticles
-    for i in range(numParticles):
-        particles[i] = particle.Particle(random.randint(0,frame0.shape[0]-1), random.randint(0,frame0.shape[1]-1), 1/numParticles)
 
 
-    while(cap.isOpened()):
-        ret, frame = cap.read()
-
-        start = time.time()
-
-        ##################################################
-        # Calculate Optical Flow
-        ##################################################
-        nextFrame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        flow = cv2.calcOpticalFlowFarneback(prevFrame, nextFrame, None, 0.5, 3, 15, 3, 5, 1.2, 0)
-        dx , dy = flow[...,0], flow[...,1]
-        prevFrame = nextFrame
-
-        ##################################################
-        # Mask R-CNN Detection
-        ##################################################
-        results = model.detect([frame], verbose=1)
-
-        ##################################################
-        # Particle FIltering to track
-        ##################################################
-        r = results[0]
-        boxes = r['rois']
-        N = boxes.shape[0]
-
-        idx = []
-        for k in range(N):
-            if r['class_ids'][k] == 1:
-                idx.append(k)
-
-        idS = 0; maxE = 0
-        for k in idx:
-            if r['scores'][k] > maxE:
-                maxE = r['scores'][k]
-                idS = k
-
-        for i in range(N):
-            if r['class_ids'][i] == 1 and i==idS:
-                # mean and covariance in the particle filter
-                y1, x1, y2, x2 = boxes[i]
-
-                # optical flow center and covariance
-                meanX = dx[x1:x2, y1:y2].mean()
-                meanY = dy[x1:x2, y1:y2].mean()
-                covX = (np.cov(dx[x1:x2, y1:y2])).mean()
-                covY = (np.cov(dy[x1:x2, y1:y2])).mean()
-
-                # bounding box center
-                boxX = (x1+x2)/2
-                boxY = (y1+y2)/2
-                covBox = 1 - r['scores'][i]
-
-                # Assign random mean / covariance which needs to be tuned
-                # currently using 0.3, 5
-                if math.isnan(meanX) :
-                    meanX = 0.3
-                    covX = 5
-                if math.isnan(meanY) :
-                    meanY = 0.3
-                    covY = 5
-
-                sumX = np.sum(dx[x1:x2, y1:y2])
-                sumY = np.sum(dy[x1:x2, y1:y2])
-
-                particles = pf.actionModel(particles, numParticles, boxX, boxY, meanX, meanY, covX, covY)
-                particles = pf.sensorModel(particles, numParticles, boxX, boxY)
-
-                for j in range(numParticles):
-                    ax.scatter([particles[j].x], [particles[j].y])
-
-                break
-
-        ##################################################
-        # Image Plotting
-        ##################################################
-        visualize.display_instances(frame, r['rois'], r['masks'], r['class_ids'], class_names, r['scores'], "Real Time Detection", size, ax, fig)
-
-        print('Time elapsed: ',time.time() - start)
-
-        if cv2.waitKey(25) & 0xFF == 27:
-            break
-
-    cap.release()
-    cv2.destroyAllWindows()
-
-    '''
-    Block for IP Streaming
+    # Block for IP Streaming
 
     url = "35.3.71.126:8080"
     link = 'http://' + url + '/video'
@@ -203,18 +101,97 @@ if __name__ == '__main__':
         a = bytes.find(b'\xff\xd8')
         b = bytes.find(b'\xff\xd9')
         if a != -1 and b != -1:
+            start = time.time()
+
             ctr += 1
+            jpg = bytes[a:b+2]
+            bytes = bytes[b+2:]
+
+            frame0 = cv2.imdecode(np.fromstring(jpg, dtype=np.uint8), cv2.IMREAD_COLOR)
+            frame0 = cv2.cvtColor(frame0, cv2.COLOR_BGR2RGB)
+            prevFrame = cv2.cvtColor(frame0, cv2.COLOR_BGR2GRAY)
+
+            ##################################################
+            # Particle Filter Initialization
+            ##################################################
+            numParticles = 100
+            particles = [particle.Particle(0,0,0)]*numParticles
+            for i in range(numParticles):
+                particles[i] = particle.Particle(random.randint(0,frame0.shape[0]-1), random.randint(0,frame0.shape[1]-1), 1/numParticles)
+
 
             if ctr%10==0:
-                jpg = bytes[a:b+2]
-                bytes = bytes[b+2:]
+
+                ##################################################
+                # Calculate Optical Flow
+                ##################################################
+
                 frame = cv2.imdecode(np.fromstring(jpg, dtype=np.uint8), cv2.IMREAD_COLOR)
+                frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                nextFrame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+                flow = cv2.calcOpticalFlowFarneback(prevFrame, nextFrame, None, 0.5, 3, 15, 3, 5, 1.2, 0)
+                dx , dy = flow[...,0], flow[...,1]
+                prevFrame = nextFrame
 
-                start = time.time()
+
+                ##################################################
+                # Mask R-CNN Detection
+                ##################################################
                 results = model.detect([frame], verbose=1)
-                r = results[0]
-                print(time.time() - start)
 
+                ##################################################
+                # Particle FIltering to track
+                ##################################################
+                r = results[0]
+                boxes = r['rois']
+                N = boxes.shape[0]
+
+                idx = []
+                for k in range(N):
+                    if r['class_ids'][k] == 1:
+                        idx.append(k)
+
+                idS = 0; maxE = 0
+                for k in idx:
+                    if r['scores'][k] > maxE:
+                        maxE = r['scores'][k]
+                        idS = k
+
+                for i in range(N):
+                    if r['class_ids'][i] == 1 and i==idS:
+                        # mean and covariance in the particle filter
+                        y1, x1, y2, x2 = boxes[i]
+
+                        # optical flow center and covariance
+                        meanX = dx[x1:x2, y1:y2].mean()
+                        meanY = dy[x1:x2, y1:y2].mean()
+                        covX = (np.cov(dx[x1:x2, y1:y2])).mean()
+                        covY = (np.cov(dy[x1:x2, y1:y2])).mean()
+
+                        # bounding box center
+                        boxX = (x1+x2)/2
+                        boxY = (y1+y2)/2
+                        covBox = 1 - r['scores'][i]
+
+                        # Assign random mean / covariance which needs to be tuned
+                        # currently using 0.3, 5
+                        if math.isnan(meanX) :
+                            meanX = 0.3
+                            covX = 5
+                        if math.isnan(meanY) :
+                            meanY = 0.3
+                            covY = 5
+
+                        sumX = np.sum(dx[x1:x2, y1:y2])
+                        sumY = np.sum(dy[x1:x2, y1:y2])
+
+                        particles = pf.actionModel(particles, numParticles, boxX, boxY, meanX, meanY, covX, covY)
+                        particles = pf.sensorModel(particles, numParticles, boxX, boxY)
+
+                        for j in range(numParticles):
+                            ax.scatter([particles[j].x], [particles[j].y])
+
+                        break
 
                 ##################################################
                 # Image Plotting
@@ -224,5 +201,5 @@ if __name__ == '__main__':
                 # Press esc on keyboard to  exit
                 if cv2.waitKey(25) & 0xFF == 27:
                     exit(0)
-    '''
 
+            print(time.time() - start)

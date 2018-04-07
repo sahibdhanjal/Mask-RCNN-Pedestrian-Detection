@@ -19,6 +19,10 @@ def sensorModel(particles, numParticles, boxX, boxY):
         dx = abs(boxX - x)
         dy = abs(boxY - y)
         dist = math.sqrt(dx**2 + dy**2)
+
+        if dist == 0:
+            dist = 0.1
+
         bias = 1/dist
         particles[i].weight = norm.pdf(bias)
         totalW += particles[i].weight
