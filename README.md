@@ -1,9 +1,11 @@
 # Mask R-CNN based Pedestrian Detection
 In this implementation, a Pedestrian Detection Algortihm is proposed based on Dense Optical Flow and Particle Filtering.
-The details can be referred to in the attached report. To run the algorithm using:
+The details can be referred to in the attached [report](https://github.com/sahibdhanjal/Mask-RCNN-Pedestrian-Detection/blob/master/assets/Mask%20R-CNN%20Based%20Pedestrian%20Tracking.pdf). To run the algorithm using:
 
 1. Laptop Webcam: use [main.py](https://github.com/sahibdhanjal/Mask-RCNN-Pedestrian-Detection/blob/master/main.py)
 2. IP Streaming using a SmartPhone: use [mainLive.py](https://github.com/sahibdhanjal/Mask-RCNN-Pedestrian-Detection/blob/master/mainLive.py)
+
+For making sure that your smartphone is connected to the laptop and streaming the video, run [VoIP.py](https://github.com/sahibdhanjal/Mask-RCNN-Pedestrian-Detection/blob/master/VoIP.py) first. To visualize dense and sparse optical flow, run [opticalFlow.py](https://github.com/sahibdhanjal/Mask-RCNN-Pedestrian-Detection/blob/master/opticalFlow.py)
 
 # Requirements
 * Python 3.4+
