@@ -70,7 +70,7 @@ class_names = ['BG', 'person', 'bicycle', 'car', 'motorcycle', 'airplane',
                'sink', 'refrigerator', 'book', 'clock', 'vase', 'scissors',
                'teddy bear', 'hair drier', 'toothbrush']
 
-frame = cv2.imread('test/3.jpeg')
+frame = cv2.imread('test/1.jpg')
 
 ##################################################
 # Mask R-CNN Detection
