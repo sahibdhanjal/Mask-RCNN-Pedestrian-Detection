@@ -196,7 +196,7 @@ if __name__ == '__main__':
                 ##################################################
                 # Image Plotting
                 ##################################################
-                visualize.display_instances(frame, r['rois'], r['masks'], r['class_ids'], class_names, r['scores'], "Real Time Detection", size, ax, fig)
+                visualize.display_instances(frame, r['rois'], r['masks'], r['class_ids'], class_names, r['scores'], "Real Time Detection", size, ax, fig, onlyPeds=True)
 
                 # Press esc on keyboard to  exit
                 if cv2.waitKey(25) & 0xFF == 27:

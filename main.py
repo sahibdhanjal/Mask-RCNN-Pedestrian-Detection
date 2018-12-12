@@ -82,10 +82,11 @@ if __name__ == '__main__':
     size = (16, 16)
     fig, ax = plt.subplots(1, figsize = size)
 
-    cap = cv2.VideoCapture(0)
+    # cap = cv2.VideoCapture(0)
 
     # Uncomment the following snippet for testing it on the video in test
-    # cap = cv2.VideoCapture('test/Pedestrian overpass.mp4')
+    cap = cv2.VideoCapture('test/Pedestrian overpass.mp4')
+    # cap = cv2.VideoCapture('test/dark1.mp4')
 
     if (cap.isOpened() == False):
         print("Error opening video stream / file")
@@ -178,7 +179,7 @@ if __name__ == '__main__':
         ##################################################
         # Image Plotting
         ##################################################
-        visualize.display_instances(frame, r['rois'], r['masks'], r['class_ids'], class_names, r['scores'], "Real Time Detection", size, ax, fig)
+        visualize.display_instances(frame, r['rois'], r['masks'], r['class_ids'], class_names, r['scores'], "Real Time Detection", size, ax, fig, onlyPeds=True)
 
         print('Time elapsed: ',time.time() - start)
 

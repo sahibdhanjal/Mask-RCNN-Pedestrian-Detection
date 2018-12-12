@@ -70,7 +70,7 @@ class_names = ['BG', 'person', 'bicycle', 'car', 'motorcycle', 'airplane',
                'sink', 'refrigerator', 'book', 'clock', 'vase', 'scissors',
                'teddy bear', 'hair drier', 'toothbrush']
 
-frame = cv2.imread('test/1.jpg')
+frame = cv2.imread('test/dark3.jpg')
 
 ##################################################
 # Mask R-CNN Detection
@@ -81,4 +81,7 @@ r = results[0]
 ##################################################
 # Image Plotting
 ##################################################
+# Uncomment below to see only pedestrians
+# visualize.display_instances(frame, r['rois'], r['masks'], r['class_ids'], class_names, r['scores'], onlyPeds = True)
 visualize.display_instances(frame, r['rois'], r['masks'], r['class_ids'], class_names, r['scores'])
+

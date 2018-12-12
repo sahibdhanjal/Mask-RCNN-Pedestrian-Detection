@@ -25,7 +25,8 @@ For making sure that your smartphone is connected to the laptop and streaming th
 4. (Optional) Install IP Webcam on your phone for live tracking
 
 # Mask R-CNN
-This implementation is forked from the implementation of the algorithm by [MatterPort](https://github.com/matterport/Mask_RCNN)
+This implementation is forked from the implementation of the algorithm by [MatterPort](https://github.com/matterport/Mask_RCNN) and slightly modified just to display masks around Pedestrians.
+To disable this behavior, you can comment out line 111 ```if class_ids[i]==1:``` and it will show masks and detections for all objects
 
 ## Mask R-CNN for Object Detection and Segmentation
 
